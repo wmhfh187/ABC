@@ -87,3 +87,20 @@ git add .gitattributes
 3. 建议：`git config --global pull.rebase true`、`git config --global core.autocrlf false`（换行由 `.gitattributes` 统一）。
 4. 克隆仓库，用 Godot 打开 `新建游戏项目/project.godot`，等待首次导入完成。
 5. 读一遍本文和 README，然后从 `dev` 切自己的功能分支开工。
+
+## 8. AI 代码审查（自动）
+
+仓库已配置 `.github/workflows/ai-review.yml`：PR 打开或更新时自动调用大模型审一遍改动，把意见贴成一条 PR 评论（同一个 PR 只保留一条，新的 push 会覆盖更新）。
+
+需要仓库管理员配置：
+
+1. **Settings → Secrets and variables → Actions → New repository secret**
+   - 名称 `DEEPSEEK_API_KEY`，值为 API Key（在 platform.deepseek.com 获取）
+2. 可选 **Variables**：`LLM_MODEL`（默认 `deepseek-chat`）、`LLM_BASE_URL`（默认 `https://api.deepseek.com`，换其他 OpenAI 兼容服务时再改）
+
+注意事项：
+
+- Key 只放 Secrets，**永远不要写进代码或提交到仓库**。
+- 来自 fork 的 PR 拿不到 Secrets，不会触发审查，也不会消耗额度。
+- 审查意见仅供参考，合并前仍要人工确认。
+- 想调整审查重点，改 `.github/scripts/review.mjs` 里的 `SYSTEM_PROMPT`；本机调试：`DRY_RUN=1 BASE_SHA=main HEAD_SHA=dev node .github/scripts/review.mjs`。
