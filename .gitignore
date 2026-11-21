@@ -1,0 +1,28 @@
+# ===== 导出产物（不要提交）=====
+build/
+export/
+dist/
+*.exe
+*.pck
+*.zip
+*.apk
+*.aab
+*.ipa
+
+# ===== Godot 缓存与导入产物 =====
+.godot/
+*.translation
+
+# ===== 编辑器 / 系统文件 =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# ===== 日志 / 临时文件 =====
+*.log
+*.tmp

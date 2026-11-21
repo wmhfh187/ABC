@@ -13,6 +13,13 @@ config_version=5
 config/name="新建游戏项目"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
+run/main_scene="res://scenes/main.tscn"
+
+[autoload]
+
+GameManager="*res://scripts/autoload/game_manager.gd"
+EventBus="*res://scripts/autoload/event_bus.gd"
+SaveSystem="*res://scripts/autoload/save_system.gd"
 
 [display]
 
