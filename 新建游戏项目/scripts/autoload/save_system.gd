@@ -5,10 +5,11 @@ extends Node
 ##   SaveSystem.save_game({"player": {"hp": 100}})
 ##   var data := SaveSystem.load_game()
 ##
-## 增加字段时请同时提升 SAVE_VERSION，并在 load_game 里做迁移，
-## 否则老存档在新版本里会读不出来。
+## 增加字段时请同时提升 SAVE_VERSION，并在 load_game 里补上对应的迁移分支；
+## 没有迁移分支的版本会被直接丢弃（返回空字典），避免调用方读到结构不对的数据。
 
 const SAVE_PATH := "user://save.json"
+const SAVE_TMP_PATH := SAVE_PATH + ".tmp"
 const SAVE_VERSION := 1
 
 signal saved()
@@ -21,13 +22,21 @@ func save_game(data: Dictionary) -> bool:
 	payload["version"] = SAVE_VERSION
 	payload["saved_at"] = Time.get_datetime_string_from_system(true)
 
-	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	# 先写临时文件再原子替换：写到一半崩溃时旧存档仍然完整，不会留下半截 JSON
+	var file := FileAccess.open(SAVE_TMP_PATH, FileAccess.WRITE)
 	if file == null:
-		push_error("SaveSystem: 无法写入存档 %s（错误码 %d）" % [SAVE_PATH, FileAccess.get_open_error()])
+		push_error("SaveSystem: 无法写入存档 %s（错误码 %d）" % [SAVE_TMP_PATH, FileAccess.get_open_error()])
 		return false
 
 	file.store_string(JSON.stringify(payload, "\t"))
 	file.close()
+
+	var err := DirAccess.rename_absolute(SAVE_TMP_PATH, SAVE_PATH)
+	if err != OK:
+		push_error("SaveSystem: 替换存档失败（错误码 %d）" % err)
+		DirAccess.remove_absolute(SAVE_TMP_PATH)
+		return false
+
 	saved.emit()
 	return true
 
@@ -53,7 +62,9 @@ func load_game() -> Dictionary:
 	var data: Dictionary = parsed
 	var version := int(data.get("version", 0))
 	if version != SAVE_VERSION:
-		push_warning("SaveSystem: 存档版本 %d 与当前版本 %d 不一致" % [version, SAVE_VERSION])
+		# 没有对应迁移分支时不要把旧格式当新格式用，否则调用方会读到缺失/错型的字段
+		push_warning("SaveSystem: 存档版本 %d 与当前版本 %d 不一致，已忽略该存档" % [version, SAVE_VERSION])
+		return {}
 
 	loaded.emit()
 	return data

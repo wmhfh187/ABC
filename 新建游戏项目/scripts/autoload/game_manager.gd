@@ -29,16 +29,28 @@ func is_playing() -> bool:
 func start_game() -> void:
 	get_tree().paused = false
 	state = State.PLAYING
+	EventBus.game_started.emit()
 
 
+## 暂停/恢复。状态没有实际变化时直接返回，避免监听方收到重复信号。
 func pause_game(paused: bool = true) -> void:
 	if _state != State.PLAYING and _state != State.PAUSED:
 		return
+
+	var target: State = State.PAUSED if paused else State.PLAYING
+	if _state == target:
+		return
+
 	get_tree().paused = paused
-	state = State.PAUSED if paused else State.PLAYING
+	state = target
 	game_paused.emit(paused)
 
 
-func end_game() -> void:
+## 结束本局并广播结果，供 UI/统计系统监听 EventBus.game_over。
+func end_game(won: bool = false) -> void:
+	if _state == State.GAME_OVER:
+		return
+
 	get_tree().paused = false
 	state = State.GAME_OVER
+	EventBus.game_over.emit(won)
