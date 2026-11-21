@@ -1,0 +1,31 @@
+# 仓库级换行与二进制标记：文本统一 LF，二进制文件禁止被当作文本 diff/合并
+* text=auto eol=lf
+
+# 图片
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.svg text
+
+# 音频
+*.wav binary
+*.ogg binary
+*.mp3 binary
+
+# 字体
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+
+# 3D 资源
+*.glb binary
+*.gltf text
+*.fbx binary
+*.obj text
+*.blend binary
+
+# 字体/压缩包
+*.zip binary
